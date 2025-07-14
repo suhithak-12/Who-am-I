@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Who Am I? Profile Card</title>
+
+  <script src="https://accounts.google.com/gsi/client" async></script>
+
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #8e44ad, #3498db);
+    color: #ffffff;
+    text-align: center;
+    margin: 0;
+    padding-top: 60px;
+    height: 100vh;
+    box-sizing: border-box;
+  }
+
+  h1 {
+    font-size: 2.5em;
+    margin-bottom: 0.2em;
+    font-family: 'Patrick Hand', cursive;
+  }
+
+  .subtitle {
+    font-size: 1.3em;
+    font-family: 'Patrick Hand', cursive;
+    margin-bottom: 40px;
+  }
+
+  #mySignInWrapper {
+    border: 2px solid black;
+    display: inline-block;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+  }
+
+  .prompt-text {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.4em;
+    color: #003366;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 300px;
+    margin: 20px auto 0;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .card img {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+  }
+
+  .card h2 {
+    margin-top: 15px;
+    font-size: 1.5em;
+  }
+
+  .card p {
+    font-size: 1em;
+    margin-top: 10px;
+  }
+
+  .btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #fff;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background: #f1f1f1;
+  }
+</style>
+
+<body>
+  <h1>WHO AM I ???</h1>
+  <div class="subtitle">Profile card generator</div>
+
+  <div id="mySignInWrapper">
+    <div id="mySignInButton"></div>
+  </div>
+
+  <div class="prompt-text">Sign in and <strong>get your profile card!!</strong></div>
+
+  <div id="content"></div>
+</body>
+
+ <script>
+  const compliments = [
+    "You make the internet better!",
+    "You're cooler than a snowstorm in July.",
+    "Your smile could light up a website.",
+    "Did you know? Octopuses have three hearts.",
+    "You're a coding rockstar in disguise.",
+    "Keep being awesome. The world needs it!"
+  ];
+
+  function decodeJWT(token) {
+    let base64Url = token.split(".")[1];
+    let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    let jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  }
+
+  function handleCredentialResponse(response) {
+    const data = decodeJWT(response.credential);
+
+    const cardHTML = `
+      <div class="card" id="profileCard" style="background: linear-gradient(135deg, #8e44ad, #3498db); color: white; position: relative;">
+        <img src="${data.picture}" alt="Profile Picture" id="profileImage">
+        <h2>Hello, ${data.name}!</h2>
+        <p>Email: ${data.email}</p>
+        <p>Fun Fact: "${compliments[Math.floor(Math.random() * compliments.length)]}"</p>
+        <button class="btn" id="downloadBtn" onclick="downloadCard()">Download My Card</button>
+        <div id="watermark" style="position: absolute; bottom: 5px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.7); font-family: Arial, sans-serif;">it's working!!!</div>
+      </div>
+    `;
+
+    document.getElementById("content").innerHTML = cardHTML;
+
+    // Hide sign-in UI
+    document.getElementById("mySignInWrapper").style.display = "none";
+    const prompt = document.querySelector(".prompt-text");
+    if (prompt) prompt.style.display = "none";
+  }
+
+  function downloadCard() {
+    const card = document.getElementById("profileCard");
+    const profileImg = document.getElementById("profileImage");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    const originalSrc = profileImg.src;
+    profileImg.src = "https://via.placeholder.com/100"; // prevent CORS error
+    if (downloadBtn) downloadBtn.style.display = "none"; // hide download button
+
+    setTimeout(() => {
+      html2canvas(card, {
+        useCORS: true,
+        backgroundColor: null
+      }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "my-profile-card.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+        // Restore after download
+        profileImg.src = originalSrc;
+        if (downloadBtn) downloadBtn.style.display = "inline-block";
+      });
+    }, 500);
+  }
+
+  window.onload = function () {
+    google.accounts.id.initialize({
+      client_id: "259080663918-5ljhdv7u97aue58b8rm9smns0q8do956.apps.googleusercontent.com",
+      callback: handleCredentialResponse
+    });
+
+    google.accounts.id.renderButton(
+      document.getElementById("mySignInButton"),
+      {
+        theme: "filled_blue",
+        size: "large",
+        width: 350,
+        shape: "rectangular"
+      }
+    );
+  };
+</script>
+
+
+  <!-- html2canvas library for downloading the card -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+</head>
+<body>
+
+  <h1>Who Am I? Profile Card Generator</h1>
+
+  <div id="signin-container">
+    <div id="mySignInButton"></div>
+  </div>
+
+  <div id="content"></div>
+
+</body>
+</html>
